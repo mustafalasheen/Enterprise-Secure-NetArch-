@@ -1,0 +1,53 @@
+en
+conf t
+hostname Branch1-R3
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+
+int g0/0/0
+no shut
+
+int g0/0/0.70
+encapsulation dot1Q 70 
+ip address 10.11.12.49 255.255.255.248
+int g0/0/0.80
+encapsulation dot1Q 80
+ip address 10.11.12.57 255.255.255.248
+int g0/0/0.110
+encapsulation dot1Q 110
+ip address 10.11.12.81 255.255.255.248
+
+ip dhcp pool V70-Branch1-OPS
+ network 10.11.12.48 255.255.255.248
+ default-router 10.11.12.49
+
+ip dhcp pool V80-Branch1-QA
+ network 10.11.12.56 255.255.255.248
+ default-router 10.11.12.57
+
+exit
+
+ip dhcp excluded-address 10.11.12.49 
+ip dhcp excluded-address 10.11.12.50
+ip dhcp excluded-address 10.11.12.57
+ip dhcp excluded-address 10.11.12.51
+ 

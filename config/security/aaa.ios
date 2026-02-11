@@ -1,0 +1,26 @@
+***************SW*****************
+username cisco secret cisco
+aaa new-model
+radius-server host 10.11.12.34 auth-port 1645 key cisco --->the correct one
+
+taca host 10.11.12.2
+tacac key cisco
+
+aaa authentication login default  group radius group tacacs+ local
+line con 0
+ login authentication default
+
+************ON_ROUTERS***********
+username cisco secret cisco
+aaa new-model
+radius server Radius
+add ip 10.11.12.34
+key cisco
+exit
+
+taca host 10.11.12.2
+tacac key cisco
+
+aaa authentication login default group tacacs+ group radius local
+line con 0
+ login authentication default

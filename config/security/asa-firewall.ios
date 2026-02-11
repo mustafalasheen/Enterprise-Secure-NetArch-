@@ -1,0 +1,81 @@
+hostname Firewall
+domain-name cisco.com
+enable password cisco
+username cisco password cisco
+crypto key generate rsa modulus 1024
+yes
+
+
+ssh 10.11.12.232 255.255.255.248 INSIDE
+ssh 10.11.12.234 255.255.255.255 INSIDE
+
+int g1/1
+ no sh
+ nameif OUTSIDE
+ security-level 0
+ ip address 10.11.12.250 255.255.255.248
+
+int g1/2
+ no sh
+ nameif INSIDE
+ security-level 100
+ ip address 10.11.12.233 255.255.255.248
+
+int g1/3
+ no sh
+ nameif DMZ
+ security-level 50
+ ip address 10.11.12.241 255.255.255.248
+
+policy-map global_policy
+class inspection_default
+inspect icmp
+inspect http
+inspect ftp
+exit
+***service-policy global_policy global** to enable policy-map
+
+route OUTSIDE 0.0.0.0 0.0.0.0 10.11.12.249
+
+
+object network INSIDE-Network
+subnet 10.11.12.232 255.255.255.248
+nat (INSIDE,OUTSIDE) dynamic interface
+exit
+configure terminal
+
+object network DMZ-Network
+subnet 10.11.12.240 255.255.255.248
+exit
+configure terminal
+
+object network SERVER-DMZ-NET
+host 10.11.12.245
+nat (DMZ,OUTSIDE) static 10.11.12.254
+exit
+configure terminal
+
+object network PC-DMZ-NET
+host 10.11.12.243
+nat (DMZ,OUTSIDE) static 10.11.12.253
+exit
+configure terminal
+
+
+access-list OUTSIDE_ACL extended permit tcp any host 10.11.12.254 eq www
+access-list OUTSIDE_ACL extended permit tcp any host 10.11.12.254 eq 443
+access-list OUTSIDE_ACL extended permit tcp any host 10.11.12.254 eq smtp
+access-list OUTSIDE_ACL extended permit tcp any host 10.11.12.254 eq 20
+access-list OUTSIDE_ACL extended permit tcp any host 10.11.12.254 eq ftp
+access-list OUTSIDE_ACL extended permit tcp any host 10.11.12.254 eq pop3
+access-list OUTSIDE_ACL extended permit icmp any any echo-reply
+
+access-group OUTSIDE_ACL in interface OUTSIDE
+
+access-list DMZ-list extended permit tcp any eq www any
+access-list DMZ-list extended permit tcp any eq 443 any
+access-list DMZ-list extended permit tcp object INSIDE-Network object DMZ-Network eq 22
+access-list DMZ-list extended permit tcp object INSIDE-Network object DMZ-Network eq telnet
+
+access-group DMZ-list out interface DMZ
+

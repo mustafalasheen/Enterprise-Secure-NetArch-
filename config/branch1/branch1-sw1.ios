@@ -1,0 +1,111 @@
+en
+conf t
+hostname Branch1-SW1
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+
+
+vlan 10 
+name Branch1-HR
+vlan 20
+name Branch1-NS
+vlan 30
+name Branch1-PR
+vlan 90
+name Branch1-MAN-A
+vlan 120
+name Branch1-Wireless
+vlan 130
+name Branch1-Native1
+
+
+
+int g0/1
+sw mode trunk
+sw trunk native vlan 130
+sw trunk allowed vlan 10,20,30,90,120,130
+
+int g0/2
+sw mode trunk
+sw trunk native vlan 130
+sw trunk allowed vlan 10,20,30,90,120,130
+
+int f0/1
+sw mode trunk
+sw trunk native vlan 130
+sw trunk allowed vlan 10,20,30,90,120,130
+exit
+
+
+int f0/3
+sw mode access
+sw access vlan 120
+
+int vlan90
+ip add 10.11.12.67 255.255.255.248
+no sh
+end
+
+ip default-gateway 10.11.12.68 
+
+
+vlan 998 ---> to avoid vlan hopping 
+name Black-Hole
+ex
+
+ip dhcp snooping
+ip dhcp snooping vlan 10,20,30,120
+no ip dhcp snooping information option
+
+ip arp inspection trust 10,20,30,90,120
+ip arp inspection validate src-mac dst-mac ip
+
+spanning-tree portfast default
+spanning-tree portfast bpduguard default
+
+int range f0/2,f0/4-24
+shutdown
+switchport mode access
+switchport access vlan 998
+ex
+
+int range f0/1-24,g0/1-2
+switchport nonegotiate
+ex
+
+int f0/3
+switchport port-security
+switchport port-security maximum 20
+switchport port-security violation protect
+switchport port-security aging time 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+ip dhcp snooping limit rate 20
+ex
+
+int range g0/1-2,f0/1
+ip dhcp snooping trust
+ip arp inspection trust
+spanning-tree portfast trunk
+ex
+
+ 

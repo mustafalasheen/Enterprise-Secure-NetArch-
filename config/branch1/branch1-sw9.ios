@@ -1,0 +1,60 @@
+en
+conf t
+hostname Branch1-SW9
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+
+
+vlan 70 
+name Branch1-Ops
+vlan 80
+name Branch1-QA
+vlan 110
+name Branch1-MAN-c
+vlan 150
+name Branch1-Native3
+
+
+int f0/22
+sw mode access
+sw access vlan 70
+
+int f0/3
+sw mode access
+sw access vlan 70
+
+int f0/1
+sw mode access
+sw access vlan 70
+exit
+
+int g0/1
+sw mode trunk
+sw trunk native vlan150
+sw trunk allowed vlan 70,80,110,150
+
+int vlan110
+ip add 10.11.12.84 255.255.255.248
+no sh
+end
+
+ip default-gateway 10.11.12.81

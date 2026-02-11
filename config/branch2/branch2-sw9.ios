@@ -1,0 +1,69 @@
+en
+conf t
+hostname Branch2-SW9
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+sdm prefer dual-ipv4-and-ipv6 default
+do reload
+y
+
+
+**then reload to make the SW accept ipv6**
+
+ipv6 unicast-routing
+
+
+vlan 50 
+name Branch2-IT
+vlan 60
+name Branch2-Sales
+vlan 90
+name Branch2-MAN-C
+vlan 120
+name Branch2-Native3
+vlan 150
+name Branch2-Management-C-V4
+
+
+int f0/21
+sw mode access
+sw access vlan 50
+
+int f0/22
+sw mode access
+sw access vlan 60
+
+int g0/1
+sw mode trunk
+sw trunk native vlan 120
+sw trunk allowed vlan 50,60,90,120,150
+exit
+
+int vlan 90
+ipv6 address 2000:12:34:8::3/64
+no sh
+
+int vlan 150
+ip add 10.11.12.172  255.255.255.248
+exit
+
+ip default-gateway 10.11.12.169

@@ -1,0 +1,67 @@
+********BR2-BR1******
+
+*******access-list 101 permit ip 192.168.2.0 0.0.0.255 192.168.1.0 0.0.0.255********??
+access-list 101 permit ip 10.11.12.176 0.0.0.7 10.11.12.48 0.0.0.7
+access-list 101 permit ip 10.11.12.176 0.0.0.7 10.11.12.56 0.0.0.7
+access-list 101 permit ip 10.11.12.176 0.0.0.7 10.11.12.80 0.0.0.7
+access-list 101 permit ip 10.11.12.184 0.0.0.7 10.11.12.48 0.0.0.7
+access-list 101 permit ip 10.11.12.184 0.0.0.7 10.11.12.56 0.0.0.7
+access-list 101 permit ip 10.11.12.184 0.0.0.7 10.11.12.80 0.0.0.7
+access-list 101 permit ip 10.11.12.152 0.0.0.7 10.11.12.48 0.0.0.7
+access-list 101 permit ip 10.11.12.152 0.0.0.7 10.11.12.56 0.0.0.7
+access-list 101 permit ip 10.11.12.152 0.0.0.7 10.11.12.80 0.0.0.7
+
+crypto isakmp policy 1
+group 5
+ authentication pre-share 
+ hash md5 
+ encryption des
+ lifetime 2000 #it's okay mykonsh nfsu bl gehaten
+
+crypto isakmp key cisco add 10.11.12.113 
+
+
+crypto ipsec transform-set R2-R1 esp-des esp-md5-hmac
+crypto map B1R3-B2R1-MAP 10 ipsec-isakmp 
+match address 101
+set transform-set R2-R1
+set peer 10.11.12.113 
+set pfs group5
+set security-association lifetime seconds 2000
+exit
+conf t
+interface s0/1/0
+crypto map B1R3-B2R1-MAP
+
+
+
+**************BR1-BR2*************
+access-list 101 permit ip 10.11.12.48 0.0.0.7 10.11.12.176 0.0.0.7
+access-list 101 permit ip 10.11.12.48 0.0.0.7 10.11.12.184 0.0.0.7
+access-list 101 permit ip 10.11.12.48 0.0.0.7 10.11.12.152 0.0.0.7
+access-list 101 permit ip 10.11.12.56 0.0.0.7 10.11.12.176 0.0.0.7
+access-list 101 permit ip 10.11.12.56 0.0.0.7 10.11.12.184 0.0.0.7
+access-list 101 permit ip 10.11.12.56 0.0.0.7 10.11.12.152 0.0.0.7
+access-list 101 permit ip 10.11.12.80 0.0.0.7 10.11.12.176 0.0.0.7
+access-list 101 permit ip 10.11.12.80 0.0.0.7 10.11.12.184 0.0.0.7
+access-list 101 permit ip 10.11.12.80 0.0.0.7 10.11.12.152 0.0.0.7
+
+crypto isakmp policy 1
+ hash md5
+ authentication pre-share
+ group 5
+ lifetime 2000
+
+crypto isakmp key cisco address 10.11.12.121
+
+crypto ipsec transform-set B1R3-B2R1 esp-des esp-md5-hmac
+
+crypto map B1R3-B2R1-MAP 10 ipsec-isakmp 
+ match address 101
+ set transform-set B1R3-B2R1
+ set peer 10.11.12.121
+ set pfs group5
+ set security-association lifetime seconds 2000
+ex
+int s0/1/0
+ crypto map B1R3-B2R1-MAP

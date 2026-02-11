@@ -1,0 +1,68 @@
+ZBF ROUTER
+
+acce 111 permit udp any any eq isakmp
+acce 111 permit esp any any
+acce 111 permit ahp any any 
+
+zone sec INSIDE
+exit
+zone sec OUTSIDE
+exit
+
+
+class-map type inspect FTP
+match protocol ftp
+class-map type inspect HTTP
+match protocol http
+class-map type inspect HTTPS
+match protocol https
+class-map type inspect ICMP
+match protocol icmp
+exit 
+class-map type inspect ISAKMP
+match access-group 111
+exit 
+
+
+
+policy-map type inspect IN_TO_OUT
+class type insp ISAKMP
+pass
+ex
+class type insp FTP
+inspect
+ex
+class type insp  HTTP
+inspect
+ex
+class type insp HTTPS
+inspect
+ex
+class type insp ICMP
+inspect
+ex
+exit
+
+policy-map type inspect OUT_TO_IN
+class type insp ISAKMP
+pass
+ex
+exit
+
+zone-pair security IN_TO_OUT_PAIR source INSIDE destination OUTSIDE 
+service-policy type inspect IN_TO_OUT
+exit
+
+zone-pair security OUT_TO_IN_PAIR source OUTSIDE destination INSIDE 
+service-policy type inspect OUT_TO_IN
+ exit
+
+int se0/1/0
+zone-member security OUTSIDE
+int se0/2/1
+zone-member security INSIDE
+int se0/2/0
+zone-member security INSIDE
+int se0/1/1
+zone-member security INSIDE
+

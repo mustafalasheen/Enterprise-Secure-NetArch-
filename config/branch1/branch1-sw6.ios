@@ -1,0 +1,114 @@
+en
+conf t
+hostname Branch1-SW6
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+
+
+vlan 40 
+name Branch1-SOC
+vlan 50
+name Branch1-IT
+vlan 60
+name Branch1-Sales
+vlan 100
+name Branch1-MAN-B
+vlan 140
+name Branch1-Native2
+
+
+int f0/5
+sw mode access
+sw access vlan 60
+
+int f0/3
+sw mode access
+sw access vlan 50
+
+int f0/24
+sw mode access
+sw access vlan 40
+
+
+
+int g0/1
+sw mode trunk
+sw trunk native vlan 140
+sw trunk allowed vlan 40,50,60,100,140
+exit
+
+int vlan100
+ip add 10.11.12.74 255.255.255.248
+no sh
+end
+
+ip default-gateway 10.11.12.73
+
+Branch1-SW6
+vlan 998
+name Black-Hole
+ex
+
+ip dhcp snooping
+ip dhcp snooping vlan 40,50,60
+no ip dhcp snooping information option
+
+ip arp inspection vlan 40,50,60,100
+ip arp inspection validate src-mac dst-mac ip
+
+spanning-tree portfast default
+spanning-tree portfast bpduguard default
+
+int range g0/2,f0/1-2,f0/4,f0/6-23
+switchport mode access
+switchport access vlan 998
+shutdown
+ex
+
+int range f0/1-24,g0/1-2
+switchport nonegotiate
+ex
+
+int range f0/3,f0/5,f0/24
+switchport port-security
+switchport port-security maximum 1
+switchport port-security violation protect
+ switchport port-security mac-address sticky
+switchport port-security aging time 20
+spanning-tree portfast
+spanning-tree bpduguard enable
+ip dhcp snooping limit rate 20
+ex
+
+int range g0/1,f0/3,f0/5,f0/24
+ip dhcp snooping trust
+ip arp inspection trust
+spanning-tree portfast trunk
+ex
+
+
+dot1x system-auth-control 
+aaa authentication dot1x default group radius 
+int range f0/3,f0/5,f0/24
+authentication port-control auto 
+dot1x pae authenticator
+ 

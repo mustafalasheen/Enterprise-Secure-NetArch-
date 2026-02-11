@@ -1,0 +1,9 @@
+ipv6 access-list mahy
+permit icmp 2000:12:34:4::0/64 any nd-na
+permit icmp 2000:12:34:4::0/64 any nd-ns
+permit icmp 2000:12:34:4::0/64 any time-exceeded
+permit icmp 2000:12:34:4::0/64 any echo-reply
+exit
+
+interface gigabitEthernet 0/0/0.40
+ipv6 traffic-filter mahy in

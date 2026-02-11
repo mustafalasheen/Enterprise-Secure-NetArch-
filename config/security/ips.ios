@@ -1,0 +1,95 @@
+en
+conf t
+hostname IPS
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+interface GigabitEthernet0/0/0
+ ip address 10.11.12.249 255.255.255.248
+no sh
+
+interface Serial0/1/0
+ ip address 10.11.12.118 255.255.255.252
+ ipv6 enable
+no sh
+
+interface Serial0/1/1
+ ip address 10.11.12.122 255.255.255.252
+ ipv6 enable
+ clock rate 2000000
+no sh
+
+interface Serial0/2/0
+ ip address 10.11.12.126 255.255.255.252
+ ipv6 enable
+no sh
+
+interface Serial0/2/1
+ ip address 10.11.12.130 255.255.255.252
+ ip ips ipips out
+ ipv6 enable
+ clock rate 2000000
+no sh
+ex
+
+router ospf 10
+ router-id 9.9.9.9
+ network 10.11.12.128 0.0.0.3 area 0
+ network 10.11.12.124 0.0.0.3 area 0
+ network 10.11.12.120 0.0.0.3 area 0
+ network 10.11.12.116 0.0.0.3 area 0
+ network 10.11.12.248 0.0.0.7 area 0
+
+
+license boot level securityk9 
+do wr
+do reload
+
+en
+mkdir IPS
+
+conf t
+ip ips config location flash:IPS
+ip ips name ipips
+ip ips notify log
+
+ip ips signature-category 
+category all
+retired true
+ex
+category ios_ips basic
+retired false
+ex
+ex
+
+int s0/2/1
+ip ips ipips out
+ex
+ip ips signature-definition
+signature 2004 0 --> ping
+status
+enabled true
+retired false
+ex
+engine
+event-action produce-alert
+event-action deny-packet-inline
+ex

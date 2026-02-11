@@ -1,0 +1,10 @@
+NTP CONFOG
+enable
+configure terminal
+ntp server 10.11.12.51
+ntp authenticate
+ntp trusted-key 1
+ntp authentication-key 1 md5 cisco
+*****ntp update*********out
+
+end

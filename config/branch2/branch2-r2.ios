@@ -1,0 +1,96 @@
+en
+conf t
+hostname Branch2-R2
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+
+ipv6 unicast-routing
+
+ipv6 dhcp pool V30-Branch2-PR
+ address prefix 2000:12:34:3::/64
+ dns-server 2000:12:34:0::8888
+ domain-name cisco.com
+
+
+ipv6 dhcp pool V40-Branch2-SOC
+ address prefix 2000:12:34:4::/64
+ dns-server 2000:12:34:0::8888
+ domain-name cisco.com
+
+int g0/0/0
+no shut
+
+interface g0/0/0.30
+ encapsulation dot1Q 30
+ ipv6 address 2000:12:34:3::1/64
+ ipv6 dhcp server V30-Branch2-PR
+ ipv6 nd managed-config-flag
+ no shutdown
+
+interface g0/0/0.40
+ encapsulation dot1Q 40
+ ipv6 address 2000:12:34:4::1/64
+ ipv6 dhcp server V40-Branch2-SOC
+ ipv6 nd managed-config-flag
+ no shutdown
+
+int g0/0/0.80
+encapsulation dot1Q 80
+ipv6 address  2000:12:34:7::4/64
+no shut
+
+int g0/0/0.30
+encapsulation dot1Q 30 
+ip address 10.11.12.193 255.255.255.248
+int g0/0/0.40
+encapsulation dot1Q 40
+ip address 10.11.12.201 255.255.255.248
+int g0/0/0.140
+encapsulation dot1Q 140
+ip address 10.11.12.161 255.255.255.248
+
+ip dhcp pool V30-Branch2-PR
+ network 10.11.12.192 255.255.255.248
+ default-router 10.11.12.193
+
+ip dhcp pool V40-Branch2-SOC
+ network 10.11.12.200 255.255.255.248
+ default-router 10.11.12.201
+
+
+ip dhcp excluded-address 10.11.12.201
+ip dhcp excluded-address 10.11.12.193
+
+ int   s0/1/1
+ip add 10.11.12.129 255.255.255.252
+no shut 
+exit
+
+router ospf 10
+router-id 6.6.6.6
+network 10.11.12.208 0.0.0.7 area 0
+network 10.11.12.216 0.0.0.7 area 0
+network 10.11.12.168 0.0.0.7 area 0
+network 10.11.12.128 0.0.0.3 area 0
+
+
+ 

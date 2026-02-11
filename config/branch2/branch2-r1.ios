@@ -1,0 +1,119 @@
+en
+conf t
+hostname Branch2-R1
+banner motd *HOLA*
+
+line console 0
+pass cisco
+login
+exit
+
+enable pass cisco
+
+
+username cisco sec cisco
+ip domain-name cisco.com
+crypto key generate rsa general-keys modulus 1024
+
+line vty 0 4
+transport input ssh
+login local
+exit
+
+service pass
+
+
+***************out******************
+ipv6 unicast-routing
+
+ipv6 dhcp pool V10-Branch2-HR
+ address prefix 2000:12:34:1::/64
+ dns-server 2000:12:34:0::8888
+ domain-name cisco.com
+
+
+ipv6 dhcp pool V20-Branch2-NS
+ address prefix 2000:12:34:2::/64
+ dns-server 2000:12:34:0::8888
+ domain-name cisco.com
+
+int g0/0/0
+no shut
+
+interface g0/0/0.10
+ encapsulation dot1Q 10
+ ipv6 address 2000:12:34:1::1/64
+ ipv6 dhcp server V10-Branch2-HR
+ ipv6 nd managed-config-flag
+ no shutdown
+
+interface g0/0/0.20
+ encapsulation dot1Q 20
+ ipv6 address 2000:12:34:2::1/64
+ ipv6 dhcp server V20-Branch2-NS
+ ipv6 nd managed-config-flag
+ no shutdown
+
+int g0/0/0.70
+encapsulation dot1Q 70
+ipv6 address  2000:12:34:6::4/64
+no shut
+
+
+int g0/0/0.10
+encapsulation dot1Q 10 
+ip address 10.11.12.177 255.255.255.248
+int g0/0/0.20
+encapsulation dot1Q 20
+ip address 10.11.12.185 255.255.255.248
+int g0/0/0.130
+encapsulation dot1Q 130
+ip address 10.11.12.155 255.255.255.248
+
+ip dhcp pool V10-Branch1-HR
+ network 10.11.12.176 255.255.255.248
+ default-router 10.11.12.177
+
+ip dhcp pool V20-Branch1-NS
+ network 10.11.12.184 255.255.255.248
+ default-router 10.11.12.185
+
+
+ip dhcp excluded-address 10.11.12.185
+ip dhcp excluded-address 10.11.12.177
+
+
+int s0/1/0 
+ip add 10.11.12.121 255.255.255.252
+no shut 
+exit 
+
+ 
+router ospf 10
+router-id 4.4.4.4
+network 10.11.12.176 0.0.0.7 area 0
+network 10.11.12.184 0.0.0.7 area 0
+network 10.11.12.120 0.0.0.3 area 0
+network 10.11.12.152 0.0.0.7 area 0
+
+
+
+ipv6 router ospf 10
+router-id 4.4.4.4
+int  g0/0/0
+int g0/0/0.10
+ipv6 ospf 10 area 0
+
+int g0/0/0.20
+ipv6 ospf 10 area 0
+int g0/0/0.70
+ipv6 ospf 10 area 0
+int s0/1/0
+
+
+ipv6 enable 
+ipv6 ospf 10 area 0
+
+
+
+ 
